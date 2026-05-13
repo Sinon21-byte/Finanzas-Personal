@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Control Finanzas</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f2f2f7; color: #1c1c1e; }
+
+.hdr { background: #1a73e8; padding: 24px 20px 20px; }
+.hdr h1 { color: white; font-size: 28px; font-weight: 800; }
+.hdr p { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 4px; }
+
+.tabs { display: flex; background: #1558b0; }
+.tab { flex: 1; padding: 15px 0; text-align: center; font-size: 16px; color: rgba(255,255,255,0.55); cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; }
+.tab.on { color: white; border-bottom-color: white; }
+
+.page { padding: 20px 16px 40px; }
+
+.slabel { font-size: 13px; font-weight: 700; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.07em; margin: 28px 0 10px 4px; }
+.slabel:first-child { margin-top: 4px; }
+
+.tgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.tbtn { padding: 22px 6px; border-radius: 16px; border: 2px solid #e5e5ea; background: white; font-size: 15px; font-weight: 700; cursor: pointer; text-align: center; color: #8e8e93; }
+.tbtn.eg { background: #fff0f0; border-color: #e53935; color: #c62828; }
+.tbtn.ing { background: #f0faf0; border-color: #43a047; color: #2e7d32; }
+.tbtn.tr { background: #e8f0fe; border-color: #1a73e8; color: #1558b0; }
+
+.card { background: white; border-radius: 16px; overflow: hidden; }
+.row { padding: 14px 18px; border-bottom: 0.5px solid #e5e5ea; }
+.row:last-child { border-bottom: none; }
+.row label { font-size: 13px; color: #8e8e93; font-weight: 600; display: block; margin-bottom: 6px; }
+.row select, .row input {
+  width: 100%; font-size: 19px; border: none; background: transparent;
+  outline: none; color: #1c1c1e; -webkit-appearance: none; padding: 0;
+}
+.row select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23aaa' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0 center; padding-right: 22px;
+}
+
+.mgrid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
+.mbtn { padding: 16px 4px; border-radius: 12px; border: 1.5px solid #e5e5ea; background: white; font-size: 15px; font-weight: 700; cursor: pointer; text-align: center; color: #1a73e8; }
+.mbtn:active { background: #e8f0fe; }
+
+.btn-reg { width: 100%; padding: 22px; font-size: 20px; font-weight: 800; border: none; border-radius: 18px; background: #1a73e8; color: white; cursor: pointer; margin-top: 32px; }
+.btn-reg:active { background: #1558b0; }
+.btn-reg:disabled { background: #b0b0b8; }
+
+.msg { text-align: center; padding: 18px; border-radius: 14px; margin-top: 16px; font-size: 17px; font-weight: 700; display: none; }
+.msg.ok { background: #f0faf0; color: #2e7d32; }
+.msg.err { background: #fff0f0; color: #c62828; }
+
+.addrow { display: flex; gap: 10px; align-items: stretch; }
+.addrow .card { flex: 1; }
+.abtn { padding: 0 22px; border-radius: 16px; border: none; background: #1a73e8; color: white; font-size: 36px; font-weight: 300; cursor: pointer; }
+
+.hide { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>Control Finanzas</h1>
+  <p id="sub">Registrando egreso</p>
+</div>
+
+<div class="tabs">
+  <div class="tab on" onclick="showTab('reg',this)">Registrar</div>
+  <div class="tab" onclick="showTab('listas',this)">+ Listas</div>
+</div>
+
+<div class="page" id="pg-reg">
+
+  <div class="slabel">¿Qué quieres registrar?</div>
+  <div class="tgrid">
+    <div class="tbtn eg" onclick="setTipo('Egreso',this)">⬇︎<br>Egreso</div>
+    <div class="tbtn" onclick="setTipo('Ingreso',this)">⬆︎<br>Ingreso</div>
+    <div class="tbtn" onclick="setTipo('Transferencia',this)">⇄<br>Transf.</div>
+  </div>
+
+  <div id="b-cuenta">
+    <div class="slabel">Cuenta</div>
+    <div class="card">
+      <div class="row">
+        <label>Cuenta</label>
+        <select id="cuenta"></select>
+      </div>
+    </div>
+  </div>
+
+  <div id="b-transfer" class="hide">
+    <div class="slabel">Transferencia</div>
+    <div class="card">
+      <div class="row">
+        <label>Desde</label>
+        <select id="desde"></select>
+      </div>
+      <div class="row">
+        <label>Hacia</label>
+        <select id="hacia"></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="slabel">Monto</div>
+  <div class="card">
+    <div class="row">
+      <label>Monto ($)</label>
+      <input type="number" id="monto" placeholder="0" inputmode="numeric">
+    </div>
+  </div>
+  <div class="mgrid" style="margin-top:10px;">
+    <div class="mbtn" onclick="addM(1000)">+1k</div>
+    <div class="mbtn" onclick="addM(10000)">+10k</div>
+    <div class="mbtn" onclick="addM(50000)">+50k</div>
+    <div class="mbtn" onclick="addM(100000)">+100k</div>
+    <div class="mbtn" onclick="addM(500000)">+500k</div>
+  </div>
+
+  <div class="slabel">Detalle</div>
+  <div class="card">
+    <div class="row">
+      <label>Fecha</label>
+      <input type="date" id="fecha">
+    </div>
+    <div class="row" id="b-cat">
+      <label>Categoría</label>
+      <select id="categoria"></select>
+    </div>
+    <div class="row" id="b-desc">
+      <label>Descripción</label>
+      <input type="text" id="desc" placeholder="Ej: Compra almacén">
+    </div>
+  </div>
+
+  <button class="btn-reg" id="btnreg" onclick="enviar()">Registrar egreso</button>
+  <div id="msg" class="msg"></div>
+
+</div>
+
+<div class="page hide" id="pg-listas">
+
+  <div class="slabel">Nueva categoría</div>
+  <div class="addrow">
+    <div class="card" style="flex:1">
+      <div class="row">
+        <label>Nombre</label>
+        <input type="text" id="ncat" placeholder="Ej: Salud">
+      </div>
+    </div>
+    <button class="abtn" onclick="agregar('categoria')">+</button>
+  </div>
+
+  <div class="slabel">Nueva cuenta</div>
+  <div class="addrow">
+    <div class="card" style="flex:1">
+      <div class="row">
+        <label>Nombre</label>
+        <input type="text" id="ncuenta" placeholder="Ej: Banco BCI">
+      </div>
+    </div>
+    <button class="abtn" onclick="agregar('cuenta')">+</button>
+  </div>
+
+  <div id="msg2" class="msg"></div>
+
+</div>
+
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjNAwpjGUu1SGIFcx0uPfTlxpI_Jp4vAMMTc-8utXmHjD7QeEhbhovMXnFhzwtzIcv/exec';
+
+var tipo = 'Egreso';
+var subs = { Egreso:'Registrando egreso', Ingreso:'Registrando ingreso', Transferencia:'Nueva transferencia' };
+
+var hoy = new Date();
+document.getElementById('fecha').value =
+  hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+
+fetch(SCRIPT_URL + '?action=getListas')
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    fill('cuenta', d.cuentas);
+    fill('desde', d.cuentas);
+    fill('hacia', d.cuentas);
+    fill('categoria', d.categorias);
+  });
+
+function fill(id, arr){
+  var s = document.getElementById(id); s.innerHTML='';
+  arr.forEach(function(v){
+    var o = document.createElement('option');
+    o.value = o.textContent = v;
+    s.appendChild(o);
+  });
+}
+
+function showTab(t, el){
+  document.getElementById('pg-reg').classList.add('hide');
+  document.getElementById('pg-listas').classList.add('hide');
+  document.getElementById('pg-'+t).classList.remove('hide');
+  document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('on'); });
+  el.classList.add('on');
+}
+
+function setTipo(t, el){
+  tipo = t;
+  document.getElementById('sub').textContent = subs[t];
+  document.getElementById('btnreg').textContent = 'Registrar '+t.toLowerCase();
+  document.querySelectorAll('.tbtn').forEach(function(b){ b.className='tbtn'; });
+  if(t==='Egreso') el.classList.add('eg');
+  else if(t==='Ingreso') el.classList.add('ing');
+  else el.classList.add('tr');
+  var tr = t==='Transferencia';
+  document.getElementById('b-cuenta').classList.toggle('hide', tr);
+  document.getElementById('b-transfer').classList.toggle('hide', !tr);
+  document.getElementById('b-cat').classList.toggle('hide', tr);
+  document.getElementById('b-desc').classList.toggle('hide', tr);
+}
+
+function addM(v){
+  var el = document.getElementById('monto');
+  el.value = (parseFloat(el.value)||0)+v;
+}
+
+function enviar(){
+  var monto = document.getElementById('monto').value;
+  var fecha = document.getElementById('fecha').value;
+  if(!monto || Number(monto)<=0){ showMsg('msg','Ingresa un monto válido.',false); return; }
+  if(!fecha){ showMsg('msg','Selecciona una fecha.',false); return; }
+
+  var datos = {
+    tipo: tipo, monto: monto, fecha: fecha,
+    categoria: document.getElementById('categoria').value,
+    descripcion: document.getElementById('desc').value,
+    cuenta: document.getElementById('cuenta').value,
+    desde: document.getElementById('desde').value,
+    hacia: document.getElementById('hacia').value
+  };
+
+  var btn = document.getElementById('btnreg');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+
+  fetch(SCRIPT_URL + '?action=registrar&datos=' + encodeURIComponent(JSON.stringify(datos)))
+    .then(function(r){ return r.json(); })
+    .then(function(){
+      showMsg('msg','¡Registrado correctamente!', true);
+      document.getElementById('monto').value = '';
+      document.getElementById('desc').value = '';
+      btn.textContent = 'Registrar '+tipo.toLowerCase();
+      btn.disabled = false;
+    })
+    .catch(function(){
+      showMsg('msg','Error al guardar. Intenta de nuevo.', false);
+      btn.textContent = 'Registrar '+tipo.toLowerCase();
+      btn.disabled = false;
+    });
+}
+
+function agregar(tl){
+  var id = tl==='categoria' ? 'ncat' : 'ncuenta';
+  var val = document.getElementById(id).value.trim();
+  if(!val){ showMsg('msg2','Escribe un nombre primero.', false); return; }
+
+  fetch(SCRIPT_URL + '?action=agregarLista&tipo=' + tl + '&valor=' + encodeURIComponent(val))
+    .then(function(r){ return r.json(); })
+    .then(function(){
+      showMsg('msg2','"'+val+'" agregado correctamente.', true);
+      document.getElementById(id).value = '';
+      return fetch(SCRIPT_URL + '?action=getListas').then(function(r){ return r.json(); });
+    })
+    .then(function(d){
+      fill('cuenta', d.cuentas); fill('desde', d.cuentas);
+      fill('hacia', d.cuentas); fill('categoria', d.categorias);
+    })
+    .catch(function(){ showMsg('msg2','Error al agregar.', false); });
+}
+
+function showMsg(id, txt, ok){
+  var el = document.getElementById(id);
+  el.textContent = txt;
+  el.className = 'msg '+(ok?'ok':'err');
+  el.style.display = 'block';
+  if(ok) setTimeout(function(){ el.style.display='none'; }, 3000);
+}
+</script>
+</body>
+</html>
